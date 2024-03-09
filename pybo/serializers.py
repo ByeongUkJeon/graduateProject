@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from pybo.models import User, Tale, Child, Ttssetting, Qna, Rate, Likes, Favorite
+from pybo.models import User, Tale, Child, Ttssetting, Qna, Rate, Likes, Favorite, Commentlikes
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -33,7 +33,7 @@ class QnaSerializer(serializers.ModelSerializer):
 class RateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rate
-        fields = ['num', 'rate', 'parent', 'talenum']
+        fields = ['num', 'rate', 'childnum', 'talenum']
 
 class LikesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -43,4 +43,9 @@ class LikesSerializer(serializers.ModelSerializer):
 class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorite
-        fields = ['num', 'parent', 'talenum']
+        fields = ['num', 'childnum', 'talenum']
+
+class CommentlikesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Commentlikes
+        fields = ['num', 'childnum', 'commentid']

@@ -71,7 +71,7 @@ class Qna(models.Model):
 class Rate(models.Model):
     num = models.AutoField(primary_key=True)
     rate = models.FloatField()
-    parent = models.ForeignKey('User', models.DO_NOTHING, db_column='parent')
+    childnum = models.ForeignKey(Child, models.DO_NOTHING, db_column='childnum')
     writedate = models.DateTimeField(blank=True, null=True, auto_now_add = True)
     talenum = models.ForeignKey('Tale', models.DO_NOTHING, db_column='talenum')
 
@@ -92,9 +92,19 @@ class Likes(models.Model):
 
 class Favorite(models.Model):
     num = models.AutoField(primary_key=True)
-    parent = models.ForeignKey('User', models.DO_NOTHING, db_column='parent')
-    talenum = models.ForeignKey('Tale', models.DO_NOTHING, db_column='talenum')
+    childnum = models.ForeignKey(Child, models.DO_NOTHING, db_column='childnum')
+    talenum = models.ForeignKey('Tale', models.DO_NOTHING, db_column='talenum', related_name='favorite_tale')
 
     class Meta:
         managed = False
         db_table = 'favorite'
+
+class Commentlikes(models.Model):
+    num = models.AutoField(primary_key=True)
+    childnum = models.ForeignKey(Child, models.DO_NOTHING, db_column='childnum')
+    commentid = models.ForeignKey('Qna', models.DO_NOTHING, db_column='commentId')  # Field name made lowercase.
+    writedate = models.DateTimeField(blank=True, null=True, auto_now_add = True)
+
+    class Meta:
+        managed = False
+        db_table = 'commentlikes'
