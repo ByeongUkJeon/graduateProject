@@ -6,12 +6,11 @@ import os
 import pybo.views
 from pybo.like import views as like_view
 from pybo.rate import views as rate_view
-
-from pybo.models import User, Tale, Child, Ttssetting, Qna, Rate, Likes, Favorite, Commentlikes
+from pybo.models import User, Tale, RecentReads
 from django.http import HttpResponse
+from datetime import datetime
 
-
-from pybo.serializers import UserSerializer, TaleSerializer, ChildSerializer, TtsSettingSerializer, QnaSerializer, RateSerializer, LikesSerializer, FavoriteSerializer, CommentlikesSerializer
+from pybo.serializers import UserSerializer, TaleSerializer, RecentReadSerializer
 
 from django.http import JsonResponse
 
@@ -108,7 +107,7 @@ def requestTale(request):
                 serializer_class = TaleSerializer(num, many=False)
                 splits = split_sentences(serializer_class.data["content"])
                 average_rate = rate_view.requestRatescore(InputData["num"])
-
+                saveRecentlyRead(InputData)
                 #for i in range(len(splits)):
                     #print(splits[i])
                     #synthesize_text(splits[i], InputData["num"], 'A', 1.2, str(i + 1))
@@ -165,6 +164,29 @@ def requestImage(request):
             return HttpResponse(f.read(), content_type="image/jpg")
     except:
         return JsonResponse({"message": "연결 오류"}, status=400)
+
+def saveRecentlyRead(InputData):
+    print(InputData)
+    current_time = datetime.now()
+    recentRead = RecentReadSerializer(data={"childnum": InputData["childnum"], "talenum": InputData["num"]})
+
+    if recentRead.is_valid():
+        try:
+            RR = RecentReads.objects.get(childnum=InputData["childnum"], talenum=InputData["num"])
+            print("레전드레전드")
+            if RR:
+                RR.readdate = current_time
+                RR.save()
+                print("여기임?1")
+                return True
+
+        except RecentReads.DoesNotExist:
+            recentRead.save()
+            print("여기임?2")
+            return True
+        except Exception as e:
+            # 모든 예외 처리
+            return JsonResponse({"message": "오류 발생: " + str(e)}, status=400)
 
 def requestAudio(request):
     try:

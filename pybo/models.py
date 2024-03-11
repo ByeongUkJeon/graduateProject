@@ -108,3 +108,13 @@ class Commentlikes(models.Model):
     class Meta:
         managed = False
         db_table = 'commentlikes'
+
+class RecentReads(models.Model):
+    num = models.AutoField(primary_key=True)
+    childnum = models.ForeignKey(Child, models.DO_NOTHING, db_column='childnum', blank=True, null=True)
+    talenum = models.ForeignKey('Tale', models.DO_NOTHING, db_column='talenum', blank=True, null=True)
+    readdate = models.DateTimeField(blank=True, null=True, auto_now_add = True)
+
+    class Meta:
+        managed = False
+        db_table = 'recent_reads'

@@ -5,12 +5,12 @@ import json
 from rest_framework import viewsets
 
 from pybo.like.views import likeCheck
-from pybo.models import User, Tale, Child, Ttssetting, Qna, Rate, Likes, Favorite, Commentlikes
+from pybo.models import User, Tale, Child, Ttssetting, Qna, Rate, Likes, Favorite, Commentlikes, RecentReads
 
 from django.core import serializers
 
 from .rate import views as rate_views
-from pybo.serializers import TaleSerializer, ChildSerializer, TtsSettingSerializer, QnaSerializer, RateSerializer, LikesSerializer, FavoriteSerializer, CommentlikesSerializer
+from pybo.serializers import TaleSerializer, ChildSerializer, TtsSettingSerializer, CommentlikesSerializer, RecentReadSerializer
 from django.http import HttpResponse
 from django.http import JsonResponse
 from google.cloud import texttospeech
@@ -86,6 +86,7 @@ def requestHome(request):
                 TTSSETTING = Ttssetting.objects.get(childnum=InputData['childId'])
                 setting_object = TtsSettingSerializer(TTSSETTING, many=False)
                 favorite = Favorite.objects.filter(childnum=InputData['childId'])
+                readList = requestRecentlyRead(InputData['childId'])
                 if favorite:
                     favoriteNums = [i["talenum_id"] for i in favorite.values()]
                     for i in favoriteNums:
@@ -100,7 +101,8 @@ def requestHome(request):
                 data = {
                     "state": "success",
                     "ttsSetting": setting_object.data,
-                    "favorites": favorites
+                    "favorites": favorites,
+                    "recently" : readList
                 }
 
                 return JsonResponse(data)
@@ -137,6 +139,23 @@ def requestSearch(request):
     except:
 
         return JsonResponse({"message": "연결 오류"}, status=400)
+
+
+
+def requestRecentlyRead(childnum):
+    try:
+        recentread = RecentReads.objects.filter(childnum = childnum).order_by('-readdate')
+
+        if recentread:
+            readList = [i for i in recentread.values()]
+            return readList
+        else:
+            return False
+
+    except:
+
+        return JsonResponse({"message": "연결 오류"}, status=400)
+
 
 
 

@@ -2,7 +2,7 @@ from django.shortcuts import render
 import json
 from pybo.models import Tale, Qna, Likes, Commentlikes
 
-from pybo.serializers import LikesSerializer
+from pybo.serializers import LikesSerializer, CommentlikesSerializer
 from django.http import JsonResponse
 
 # Create your views here.
@@ -73,8 +73,6 @@ def likeCheck(child, num, type):
             Like = Likes.objects.get(childnum=child, talenum=num)
             if Like:
                 return True
-
-
         except Likes.DoesNotExist:
             return False
     elif type == "COMMENT":
