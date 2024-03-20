@@ -22,6 +22,8 @@ class Tale(models.Model):
     likes = models.IntegerField(blank=True, null=True)
     views = models.IntegerField(blank=True, null=True)
     reviews = models.IntegerField(blank=True, null=True)
+    age = models.IntegerField(blank=True, null=True)
+    genre = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -74,6 +76,7 @@ class Rate(models.Model):
     childnum = models.ForeignKey(Child, models.DO_NOTHING, db_column='childnum')
     writedate = models.DateTimeField(blank=True, null=True, auto_now_add = True)
     talenum = models.ForeignKey('Tale', models.DO_NOTHING, db_column='talenum')
+
 
     class Meta:
         managed = False

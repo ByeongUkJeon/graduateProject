@@ -21,10 +21,10 @@ def requestFavorite(request):
             InputData = json.loads(request.body)
             serializer_class = FavoriteSerializer(data=InputData)
             #childnum talenum
-            if (not favoriteCheck(InputData["childnum"], InputData["talenum"])) and serializer_class.is_valid():
+            if favoriteCheck(InputData["childnum"], InputData["talenum"]) == "false" and serializer_class.is_valid():
                 serializer_class.save()
                 return JsonResponse({"message": "success"})
-            elif favoriteCheck(InputData["childnum"], InputData["talenum"]):
+            elif favoriteCheck(InputData["childnum"], InputData["talenum"]) == "true":
                 try:
                     favorite = Favorite.objects.get(childnum=InputData["childnum"], talenum=InputData["talenum"])
                     favorite.delete()
@@ -43,10 +43,10 @@ def favoriteCheck(child, num):
     try:
         favorite = Favorite.objects.get(childnum=child, talenum=num)
         if favorite:
-            return True
+            return "true"
 
     except Favorite.DoesNotExist:
-        return False
+        return "false"
 
 
 

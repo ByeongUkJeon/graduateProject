@@ -10,6 +10,7 @@ from pybo.models import User, Tale, Child, Ttssetting, Qna, Rate, Likes, Favorit
 from django.core import serializers
 
 from .rate import views as rate_views
+from .tale import views as tale_views
 from pybo.serializers import TaleSerializer, ChildSerializer, TtsSettingSerializer, CommentlikesSerializer, RecentReadSerializer
 from django.http import HttpResponse
 from django.http import JsonResponse
@@ -82,27 +83,55 @@ def requestHome(request):
             queryset = Child.objects.filter(num=InputData["childId"])
             print("뭔데")
             favorites = []
+            readLists = []
+            recommends = []
             if queryset:
                 TTSSETTING = Ttssetting.objects.get(childnum=InputData['childId'])
                 setting_object = TtsSettingSerializer(TTSSETTING, many=False)
                 favorite = Favorite.objects.filter(childnum=InputData['childId'])
                 readList = requestRecentlyRead(InputData['childId'])
+                recommend = tale_views.requestRecommend(InputData['childId'])
+                print([a["num"] for a in recommend])
+                if recommend:
+                    recommendNums = [i["num"] for i in recommend]
+                    for i in recommendNums:
+                        taleSet = Tale.objects.get(num=i)
+                        serializer_class = TaleSerializer(taleSet, many=False)
+                        average_rate = rate_views.requestRatescore(i)
+                        data = serializer_class.data
+                        data["rate"] = average_rate
+                        recommends.append(data)
+
+                if readList:
+                    recentlyNums = [i["num"] for i in readList]
+                    for i in recentlyNums:
+                        taleSet = Tale.objects.get(num=i)
+                        serializer_class = TaleSerializer(taleSet, many=False)
+                        average_rate = rate_views.requestRatescore(i)
+                        data = serializer_class.data
+                        data["rate"] = average_rate
+                        readLists.append(data)
+
+                else:
+                    readLists = []
+
                 if favorite:
                     favoriteNums = [i["talenum_id"] for i in favorite.values()]
                     for i in favoriteNums:
                         taleSet = Tale.objects.get(num=i)
                         serializer_class = TaleSerializer(taleSet, many=False)
                         average_rate = rate_views.requestRatescore(i)
-                        serializer_class.data["rate"] = average_rate
-                        favorites.append(serializer_class.data)
+                        data = serializer_class.data
+                        data["rate"] = average_rate
+                        favorites.append(data)
                 else:
                     favorites = []
-
                 data = {
                     "state": "success",
                     "ttsSetting": setting_object.data,
                     "favorites": favorites,
-                    "recently" : readList
+                    "recently" : readLists,
+                    "recommend" : recommends
                 }
 
                 return JsonResponse(data)
@@ -148,9 +177,15 @@ def requestRecentlyRead(childnum):
 
         if recentread:
             readList = [i for i in recentread.values()]
-            return readList
+            taleList = []
+            for i in readList:
+                tale = Tale.objects.filter(num=i["talenum_id"])
+                taleList += tale.values()
+
+            return taleList
+
         else:
-            return False
+            return []
 
     except:
 

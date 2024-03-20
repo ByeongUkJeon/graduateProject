@@ -11,7 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
 class TaleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tale
-        fields = ['num', 'imglink', 'title', 'content', 'likes', 'reviews', 'views']
+        fields = ['num', 'imglink', 'title', 'content', 'likes', 'reviews', 'views', 'age', 'genre']
 
 
 class ChildSerializer(serializers.ModelSerializer):

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+{% load static %} <!-- Django 템플릿 태그로 static 파일을 로드합니다. -->
+<html lang="ko">
+<head>
+    <meta charset="UTF-8"> <!-- 문서의 문자 인코딩을 설정합니다. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 반응형 레이아웃을 위한 viewport 설정입니다. -->
+    <title>동화 이야기</title> <!-- 문서의 제목을 설정합니다. -->
+    <style>
+        .playing {
+            font-weight: bold;
+            color: red; /* 재생 중인 문장을 강조하기 위한 스타일입니다. */
+        }
+
+        #play-button {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+
+        #pause-button {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            cursor: pointer;
+            display: none; /* 일시정지 버튼은 처음에는 숨겨집니다. */
+        }
+        h1 {
+            color: orange; /* css 적용되긴함 */
+        }
+    </style>
+</head>
+<body>
+    <h1>동화 이야기</h1> <!-- 문서의 제목입니다. -->
+
+    <!-- 오디오와 문장을 표시하는 컨테이너입니다. -->
+    <div id="audio-container">
+        {% for sentence in sentences %}
+            <!-- 문장을 표시하고 각 문장에 대한 인덱스와 소리 파일의 경로를 설정합니다. -->
+            <p class="sentence" data-index="{{ forloop.counter0 }}" data-src="{{ sentence }}">{{ sentence }}</p>
+            <!-- 각 문장에 대한 오디오 태그를 생성합니다. -->
+            <audio>
+                <source src="{% static 'pybo/audio/20/20_A_A_' %}{{ forloop.counter }}.mp3" type="audio/mp3">
+                브라우저가 오디오 태그를 지원하지 않습니다.
+            </audio>
+            <br> <!-- 문장과 오디오 태그 사이에 줄바꿈을 추가합니다. -->
+        {% endfor %}
+    </div>
+
+    <!-- 재생 버튼과 일시정지 버튼입니다. -->
+    <button id="play-button" onclick="togglePlayPause()">재생</button>
+    <button id="pause-button" onclick="togglePlayPause()" style="display: none;">일시정지</button>
+
+    <!-- 자바스크립트 코드입니다. -->
+    <script>
+        // 초기 변수 설정
+        var currentSentenceIndex = 0; // 현재 재생 중인 문장의 인덱스
+        var sentences = document.querySelectorAll('.sentence'); // 모든 문장 요소를 가져옵니다.
+        var audios = document.querySelectorAll('audio'); // 모든 오디오 요소를 가져옵니다.
+        var isPlaying = false; // 오디오가 재생 중인지 여부를 나타내는 변수
+        var isFirstPlay = true; // 처음 재생 버튼을 눌렀는지 여부를 나타내는 변수
+
+        // 각 문장을 클릭할 때 해당 문장을 재생하는 이벤트를 설정합니다.
+        sentences.forEach(function(sentence, index) {
+            sentence.addEventListener('click', function() {
+                currentSentenceIndex = index; // 현재 재생 중인 문장의 인덱스를 설정합니다.
+                playFromIndex(currentSentenceIndex); // 해당 인덱스부터 재생합니다.
+            });
+        });
+
+        // 특정 인덱스부터 재생하는 함수입니다.
+        function playFromIndex(index) {
+            pauseAll(); // 모든 오디오를 일시정지합니다.
+            var audioElement = audios[index]; // 해당 인덱스의 오디오 요소를 가져옵니다.
+            var currentSentence = sentences[index]; // 해당 인덱스의 문장 요소를 가져옵니다.
+            currentSentence.classList.add('playing'); // 현재 재생 중인 문장을 강조 표시합니다.
+            audioElement.currentTime = 0; // 오디오의 현재 재생 시간을 초기화합니다.
+            audioElement.play(); // 오디오를 재생합니다.
+
+            // 오디오 재생이 끝나면 다음 문장을 재생하거나 재생 상태를 초기화합니다.
+            audioElement.onended = function() {
+                currentSentence.classList.remove('playing'); // 강조 표시를 제거합니다.
+                if (currentSentenceIndex < sentences.length - 1) {
+                    currentSentenceIndex++; // 다음 문장으로 인덱스를 업데이트합니다.
+                    playFromIndex(currentSentenceIndex); // 다음 문장을 재생합니다.
+                } else {
+                    isPlaying = false; // 재생 상태를 초기화합니다.
+                    document.getElementById("play-button").innerText = "재생"; // 재생 버튼 텍스트를 변경합니다.
+                    document.getElementById("pause-button").style.display = "none"; // 일시정지 버튼을 숨깁니다.
+                }
+            };
+        }
+
+        // 모든 오디오를 일시정지하고 재생 중인 문장의 스타일을 초기화하는 함수입니다.
+        function pauseAll() {
+            audios.forEach(function(audio) {
+                audio.pause(); // 모든 오디오를 일시정지합니다.
+            });
+            isPlaying = false; // 재생 상태를 초기화합니다.
+            document.querySelectorAll('.playing').forEach(function(sentence) {
+                sentence.classList.remove('playing'); // 재생 중인 문장의 강조 표시를 제거합니다.
+            });
+        }
+
+        // 재생/일시정지 버튼을 토글하는 함수입니다.
+        function togglePlayPause() {
+            var audioElement = audios[currentSentenceIndex]; // 현재 재생 중인 오디오 요소를 가져옵니다.
+            if (isFirstPlay) {
+                isFirstPlay = false; // 처음 재생 버튼을 눌렀음을 표시합니다.
+                playFromIndex(0); // 첫 번째 문장부터 재생합니다.
+                document.getElementById("play-button").innerText = "일시정지"; // 재생 버튼 텍스트를 변경합니다.
+                document.getElementById("pause-button").style.display = "block"; // 일시정지 버튼을 보이도록 설정합니다.
+            } else {
+                if (audioElement.paused) {
+                    audioElement.play(); // 일시정지 상태인 경우 오디오를 재생합니다.
+                    isPlaying = true; // 재생 상태로 설정합니다.
+                    document.getElementById("play-button").innerText = "일시정지"; // 재생 버튼 텍스트를 변경합니다.
+                    document.getElementById("pause-button").style.display = "block"; // 일시정지 버튼을 보이도록 설정합니다.
+                } else {
+                    audioElement.pause(); // 재생 중인 경우 오디오를 일시정지합니다.
+                    isPlaying = false; // 재생 상태를 해제합니다.
+                    document.getElementById("play-button").innerText = "재생"; // 재생 버튼 텍스트를 변경합니다.
+                    document.getElementById("pause-button").style.display = "none"; // 일시정지 버튼을 숨깁니다.
+                }
+            }
+        }
+    </script>
+</body>
+</html>

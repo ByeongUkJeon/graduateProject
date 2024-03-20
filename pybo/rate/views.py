@@ -48,7 +48,7 @@ def requestRatescore(num):
 
             return round(rate, 2)
         else:
-            return False
+            return "평가 없음"
     except Exception as e:
         # 모든 예외 처리
         return JsonResponse({"message": "오류 발생: " + str(e)}, status=400)
